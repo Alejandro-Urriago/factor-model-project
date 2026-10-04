@@ -44,15 +44,32 @@ models:
       One row per factor per date. The grain of this table is one
       factor return observation per factor per return_date. Built from
       a metadata-driven unpivot of the wide stg_factor_model__returns
-      model, so no factor column names are hardcoded.
+      model, joined to dim_factor to attach the surrogate key, so no
+      factor column names are hardcoded.
     columns:
       - name: return_date
         description: The date of the return observation. Part of the composite key, foreign key to dim_date.
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: return_date
+      - name: factor_id
+        description: Foreign key to dim_factor (surrogate key).
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_factor')
+                field: factor_id
       - name: factor_name
         description: The factor this return belongs to. Part of the composite key, foreign key to dim_factor.
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_factor')
+                field: factor_name
       - name: return_value
         description: The monthly return value for this factor on this date, cast to number(10,6).
