@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: dim_factor
+    description: >
+      One row per factor. The grain of this table is one unique factor
+      per row, used to describe and categorize each factor referenced
+      in fact_factor_returns.
+    columns:
+      - name: factor_id
+        description: Primary key for the dim_factor table (surrogate key).
+        data_tests:
+          - unique
+          - not_null
+      - name: factor_name
+        description: The business name of the factor, e.g. world_equities.
+        data_tests:
+          - unique
+          - not_null
+      - name: factor_category
+        description: "{{ doc('factor_category') }}"
+      - name: factor_short_description
+        description: A short, human-readable explanation of what this factor represents.
+
+  - name: dim_date
+    description: >
+      One row per distinct return_date present in fact_factor_returns.
+      The grain of this table is one unique calendar date per row.
+    columns:
+      - name: return_date
+        description: Primary key for the dim_date table. The calendar date of the return observation.
+        data_tests:
+          - unique
+          - not_null
+      - name: year
+        description: Calendar year extracted from return_date.
+      - name: month
+        description: Calendar month (1-12) extracted from return_date.
+      - name: quarter
+        description: Calendar quarter (1-4) extracted from return_date.
+
+  - name: fact_factor_returns
+    description: >
+      One row per factor per date. The grain of this table is one
+      factor return observation per factor per return_date. Built from
+      a metadata-driven unpivot of the wide stg_factor_model__returns
+      model, so no factor column names are hardcoded.
+    columns:
+      - name: return_date
+        description: The date of the return observation. Part of the composite key, foreign key to dim_date.
+        data_tests:
+          - not_null
+      - name: factor_name
+        description: The factor this return belongs to. Part of the composite key, foreign key to dim_factor.
+        data_tests:
+          - not_null
+      - name: return_value
+        description: The monthly return value for this factor on this date, cast to number(10,6).
