@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_factor_model__returns
+    description: Staged wide-format returns data from the raw returns table.
+    columns:
+      - name: return_date
+        description: Date of the return observation.
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_factor_model__factor_lookup
+    description: Staged factor metadata (name, category, description).
+    columns:
+      - name: factor_name
+        description: Unique identifier for each factor.
+        data_tests:
+          - unique
+          - not_null
