@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: factor_model
+    database: FACTOR_MODEL_PROJECT
+    schema: RAW
+    tables:
+      - name: returns
+      - name: factor_lookup
