@@ -1,0 +1,20 @@
+definition_version: 2
+entities:
+  streamlit_app:
+    type: streamlit
+    main_file: factor_model_dashboard.py
+    query_warehouse: COMPUTE_WH
+    compute_pool: SYSTEM_COMPUTE_POOL_CPU
+    artifacts:
+      - pyproject.toml
+      - factor_model_dashboard.py
+      - .streamlit/config.toml
+    identifier:
+      database: FACTOR_MODEL_PROJECT
+      schema: ANALYTICS
+      name: FACTOR_MODEL_DASHBOARD
+    title: Factor Model Dashboard
+    run_mode: SpcsOnly
+    execute_as: OWNER
+    artifact_repositories:
+      - SNOWFLAKE.SNOWPARK.PYPI_SHARED_REPOSITORY
