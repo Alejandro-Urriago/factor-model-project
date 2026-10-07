@@ -1,0 +1,29 @@
+-- 02_raw_tables.sql
+-- Raw landing tables. _ETL_LOADED_AT is filled automatically on load and is
+-- used by dbt for the source freshness check (loaded_at_field).
+
+CREATE TABLE IF NOT EXISTS FACTOR_MODEL_PROJECT.RAW.RETURNS (
+    DATE                  DATE,
+    WORLD_EQUITIES        NUMBER(10,6),
+    US_TREASURIES_10YR    NUMBER(10,6),
+    HIGH_YIELD            NUMBER(10,6),
+    INFLATION_PROTECTION  NUMBER(10,6),
+    CURRENCY_PROTECTION   NUMBER(10,6),
+    US_EQUITY             NUMBER(10,6),
+    SP500_TOTAL_RETURN    NUMBER(10,6),
+    SP500                 NUMBER(10,6),
+    INTERNATIONAL_EQUITY  NUMBER(10,6),
+    US_TREASURY_20YR      NUMBER(10,6),
+    CORPORATE_BOND        NUMBER(10,6),
+    REAL_ESTATE           NUMBER(10,6),
+    COMMODITY             NUMBER(10,6),
+    TIPS                  NUMBER(10,6),
+    _ETL_LOADED_AT        TIMESTAMP_NTZ(9) DEFAULT CURRENT_TIMESTAMP()
+);
+
+CREATE TABLE IF NOT EXISTS FACTOR_MODEL_PROJECT.RAW.FACTOR_LOOKUP (
+    FACTOR_NAME               VARCHAR,
+    FACTOR_CATEGORY           VARCHAR,
+    FACTOR_SHORT_DESCRIPTION  VARCHAR,
+    _ETL_LOADED_AT            TIMESTAMP_NTZ(9) DEFAULT CURRENT_TIMESTAMP()
+);
