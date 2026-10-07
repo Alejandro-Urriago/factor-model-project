@@ -1,0 +1,7 @@
+Asset,Intercept,world_equities,us_treasuries_10yr,high_yield,inflation_protection,currency_protection,Implied Expected Return (Annual)
+Sp500 Total Return,0,0.976,0.034,0,0,0.269,0.082
+International Equity,0,0.932,-0.083,0.022,-0.016,-0.322,0.077
+Us Treasury 20Yr,0,0,1.34,0.027,0,0.099,0.025
+Corporate Bond,0.002,0.081,0.566,0.074,0.234,-0.004,0.039
+Commodity,0.003,0.215,0,-0.057,0.841,-0.992,0.043
+Tips,0,0.002,0.958,0,0.939,0,0.019
