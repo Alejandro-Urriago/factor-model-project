@@ -1,4 +1,4 @@
-# Factor Investing + Snowflake + dbt
+# Factor Investing + Snowflake + dbt + Machine Learning
 A 5-factor model replicating the Harvard Endowment framework, built end to end on Snowflake.
 Raw returns are modelled with dbt, a cross-validated LASSO regression estimates each asset's factor loadings,
 and a Streamlit app lets you explore the results and test your own return assumptions.
