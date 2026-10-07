@@ -1,0 +1,8 @@
+numpy
+pandas
+scipy
+scikit-learn
+cvxpy
+matplotlib
+seaborn
+snowflake-snowpark-python
