@@ -1,24 +1,44 @@
-import streamlit as st
+from pathlib import Path
+
 import pandas as pd
-from snowflake.snowpark.context import get_active_session
+import streamlit as st
 
 st.set_page_config(page_title="Factor Model Dashboard", layout="wide")
 
-session = get_active_session()
-factor_matrix = session.table("FACTOR_MODEL_PROJECT.ANALYTICS.FACTOR_MATRIX_RESULTS").to_pandas().set_index("Asset")
+DATA_DIR = Path(__file__).parent
+
+# One app, two places to run:
+# - Streamlit in Snowflake: reads the tables with the active Snowflake session.
+# - Anywhere else (for example Streamlit Community Cloud): reads the saved CSV files in the data folder.
+try:
+    from snowflake.snowpark.context import get_active_session
+    session = get_active_session()
+except Exception:
+    session = None
+
+if session is not None:
+    factor_matrix = session.table("FACTOR_MODEL_PROJECT.ANALYTICS.FACTOR_MATRIX_RESULTS").to_pandas().set_index("Asset")
+    long_df = session.table("FACTOR_MODEL_PROJECT.DBT_AURRIAGO.FACT_FACTOR_RETURNS").to_pandas()
+else:
+    factor_matrix = pd.read_csv(DATA_DIR / "factor_matrix_results.csv").set_index("Asset")
+    returns_file = DATA_DIR / "factor_returns.csv"
+    long_df = pd.read_csv(returns_file) if returns_file.exists() else None
+    if long_df is not None:
+        long_df.columns = [c.upper() for c in long_df.columns]
 
 factorNames = ['world_equities', 'us_treasuries_10yr', 'high_yield',
                'inflation_protection', 'currency_protection']
 
 AUTHOR_NAME = "Alejandro Urriago, CFA"
 
-# Load raw monthly returns for the time series explorer
-long_df = session.table("FACTOR_MODEL_PROJECT.DBT_AURRIAGO.FACT_FACTOR_RETURNS").to_pandas()
-wide_df = long_df.pivot(index="RETURN_DATE", columns="FACTOR_NAME", values="RETURN_VALUE").reset_index()
-wide_df.columns = [c.lower() for c in wide_df.columns]
-wide_df = wide_df.rename(columns={"return_date": "Date"})
-wide_df["Date"] = pd.to_datetime(wide_df["Date"])
-wide_df = wide_df[(wide_df["Date"] >= "1997-03-01") & (wide_df["Date"] <= "2012-12-01")].reset_index(drop=True)
+# Monthly returns for the time series explorer (optional when running from CSV)
+wide_df = None
+if long_df is not None:
+    wide_df = long_df.pivot(index="RETURN_DATE", columns="FACTOR_NAME", values="RETURN_VALUE").reset_index()
+    wide_df.columns = [c.lower() for c in wide_df.columns]
+    wide_df = wide_df.rename(columns={"return_date": "Date"})
+    wide_df["Date"] = pd.to_datetime(wide_df["Date"])
+    wide_df = wide_df[(wide_df["Date"] >= "1997-03-01") & (wide_df["Date"] <= "2012-12-01")].reset_index(drop=True)
 
 st.title("Factor Model Dashboard")
 st.markdown("**" + AUTHOR_NAME + "**")
@@ -120,40 +140,44 @@ st.caption("Chart by **" + AUTHOR_NAME + "**")
 
 st.divider()
 
-st.subheader("Time Series Explorer")
-st.caption("Select an asset to see its return history alongside the factors LASSO identified as relevant (non-zero loadings).")
-
-ts_asset_display = st.selectbox("Select an asset", factor_matrix.index.tolist(), key="ts_asset")
-ts_asset_col = ts_asset_display.lower()
-ts_asset_col = ts_asset_col.replace(' ', '_')
-
-asset_row = factor_matrix.loc[ts_asset_display, factorNames]
-relevant_factors = asset_row[asset_row.abs() > 0.005].index.tolist()
-
-if not relevant_factors:
-    st.info("No factors with non-zero loadings for this asset.")
+if wide_df is None:
+    st.subheader("Time Series Explorer")
+    st.info("Return history is not included in this public version.")
 else:
-    cols_to_plot = [ts_asset_col] + relevant_factors
-    cum_returns = wide_df.set_index("Date")[cols_to_plot]
-    cum_returns = (1 + cum_returns).cumprod()
+    st.subheader("Time Series Explorer")
+    st.caption("Select an asset to see its return history alongside the factors LASSO identified as relevant (non-zero loadings).")
 
-    renamed_cols = []
-    for c in cum_returns.columns:
-        renamed_cols.append(c.replace('_', ' ').title())
-    cum_returns.columns = renamed_cols
+    ts_asset_display = st.selectbox("Select an asset", factor_matrix.index.tolist(), key="ts_asset")
+    ts_asset_col = ts_asset_display.lower()
+    ts_asset_col = ts_asset_col.replace(' ', '_')
 
-    st.line_chart(cum_returns)
+    asset_row = factor_matrix.loc[ts_asset_display, factorNames]
+    relevant_factors = asset_row[asset_row.abs() > 0.005].index.tolist()
 
-    relevant_labels = []
-    for f in relevant_factors:
-        relevant_labels.append(f.replace('_', ' ').title())
+    if not relevant_factors:
+        st.info("No factors with non-zero loadings for this asset.")
+    else:
+        cols_to_plot = [ts_asset_col] + relevant_factors
+        cum_returns = wide_df.set_index("Date")[cols_to_plot]
+        cum_returns = (1 + cum_returns).cumprod()
 
-    caption_text = "Relevant factors for "
-    caption_text = caption_text + ts_asset_display
-    caption_text = caption_text + ": "
-    caption_text = caption_text + ", ".join(relevant_labels)
-    st.caption(caption_text)
-    st.caption("Chart by **" + AUTHOR_NAME + "**")
+        renamed_cols = []
+        for c in cum_returns.columns:
+            renamed_cols.append(c.replace('_', ' ').title())
+        cum_returns.columns = renamed_cols
+
+        st.line_chart(cum_returns)
+
+        relevant_labels = []
+        for f in relevant_factors:
+            relevant_labels.append(f.replace('_', ' ').title())
+
+        caption_text = "Relevant factors for "
+        caption_text = caption_text + ts_asset_display
+        caption_text = caption_text + ": "
+        caption_text = caption_text + ", ".join(relevant_labels)
+        st.caption(caption_text)
+        st.caption("Chart by **" + AUTHOR_NAME + "**")
 
 st.divider()
 
@@ -206,7 +230,7 @@ implied_df['Implied Expected Return'] = implied_df['Implied Expected Return'] * 
 implied_df['Implied Expected Return'] = implied_df['Implied Expected Return'].round(2)
 implied_df['Implied Expected Return'] = implied_df['Implied Expected Return'].astype(str) + '%'
 
-st.dataframe(implied_df, use_container_width=True)
+st.dataframe(implied_df, width="stretch")
 
 implied_pct_chart = {}
 for k, v in implied_returns.items():
