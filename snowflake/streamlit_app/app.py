@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-st.set_page_config(page_title="Factor Model Dashboard", layout="wide")
+st.set_page_config(page_title="Factor Investing: A Machine Learning Approach", layout="wide")
 
 DATA_DIR = Path(__file__).parent
 
@@ -43,9 +43,9 @@ if long_df is not None:
     wide_df["Date"] = pd.to_datetime(wide_df["Date"])
     wide_df = wide_df[(wide_df["Date"] >= "1997-03-01") & (wide_df["Date"] <= "2012-12-01")].reset_index(drop=True)
 
-st.title("Factor Model Dashboard")
+st.title("Factor Investing: A Machine Learning Approach")
 st.markdown("**" + AUTHOR_NAME + "**")
-st.caption("5-factor model replicating the Harvard Endowment framework, built with CV-tuned LASSO regression on Snowflake + dbt data.")
+st.caption("5-factor approach replicating the Harvard Endowment framework, built with CV-tuned LASSO regression on Snowflake + dbt data.")
 
 col1, col2, col3 = st.columns(3)
 col1.metric("Assets modeled", len(factor_matrix))
