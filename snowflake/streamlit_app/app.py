@@ -25,7 +25,7 @@ else:
     long_df = None
     if returns_file.exists():
         wide_file_df = pd.read_csv(returns_file, encoding="utf-8-sig")
-        wide_file_df["date"] = pd.to_datetime(wide_file_df["date"], dayfirst=True)
+        wide_file_df["date"] = pd.to_datetime(wide_file_df["date"], format="%m/%d/%Y")
         long_df = wide_file_df.melt(id_vars="date", var_name="FACTOR_NAME", value_name="RETURN_VALUE")
         long_df = long_df.rename(columns={"date": "RETURN_DATE"}).dropna()
 
