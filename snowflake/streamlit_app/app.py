@@ -22,9 +22,12 @@ if session is not None:
 else:
     factor_matrix = pd.read_csv(DATA_DIR / "factor_matrix_results.csv").set_index("Asset")
     returns_file = DATA_DIR / "factor_returns.csv"
-    long_df = pd.read_csv(returns_file) if returns_file.exists() else None
-    if long_df is not None:
-        long_df.columns = [c.upper() for c in long_df.columns]
+    long_df = None
+    if returns_file.exists():
+        wide_file_df = pd.read_csv(returns_file, encoding="utf-8-sig")
+        wide_file_df["date"] = pd.to_datetime(wide_file_df["date"], dayfirst=True)
+        long_df = wide_file_df.melt(id_vars="date", var_name="FACTOR_NAME", value_name="RETURN_VALUE")
+        long_df = long_df.rename(columns={"date": "RETURN_DATE"}).dropna()
 
 factorNames = ['world_equities', 'us_treasuries_10yr', 'high_yield',
                'inflation_protection', 'currency_protection']
